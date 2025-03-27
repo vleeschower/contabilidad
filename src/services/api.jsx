@@ -74,3 +74,5 @@ export const getNombreEmpresa = async () => {
     const data = await response.json();
     return data; // Devuelve el objeto completo { nombre: "Nombre de la Empresa" }
 };
+
+

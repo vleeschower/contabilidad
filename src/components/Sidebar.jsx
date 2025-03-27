@@ -1,8 +1,8 @@
 import React, { useState } from "react";
 import { Link } from "react-router-dom";
-import { FaBars, FaBook, FaBookReader, FaExchangeAlt, FaHome, FaJournalWhills } from "react-icons/fa";
-import { FaBookBookmark, FaBookJournalWhills, FaBookmark, FaBookOpen, FaBookOpenReader, FaBookQuran, FaBookSkull, FaBookTanakh, FaScaleBalanced, FaScaleUnbalanced, FaScaleUnbalancedFlip } from "react-icons/fa6";
-import { BsFillJournalBookmarkFill } from "react-icons/bs";
+import { FaBars, FaBook, FaBookReader, FaChair, FaChalkboard, FaExchangeAlt, FaFileArchive, FaHome, FaJournalWhills, FaRegFileExcel } from "react-icons/fa";
+import { FaBookBookmark, FaBookJournalWhills, FaBookmark, FaBookOpen, FaBookOpenReader, FaBookQuran, FaBookSkull, FaBookTanakh, FaChartArea, FaChartBar, FaRegChartBar, FaScaleBalanced, FaScaleUnbalanced, FaScaleUnbalancedFlip } from "react-icons/fa6";
+import { BsClipboard2Check, BsClipboard2Data, BsClipboard2DataFill, BsClipboard2Pulse, BsClipboard2PulseFill, BsFillJournalBookmarkFill } from "react-icons/bs";
 
 const Sidebar = () => {
     const [isCollapsed, setIsCollapsed] = useState(false);
@@ -97,6 +97,46 @@ const Sidebar = () => {
                     >
                         <FaScaleUnbalancedFlip />
                         {!isCollapsed && "Balance de comprobación"}
+                    </Link>
+                </li>
+                <li className="nav-item mt-2">
+                    <Link to="/estado-resultados" className="nav-link text-white d-flex align-items-center gap-2"
+                        style={{ padding: "10px", borderRadius: "5px", transition: "background 0.3s" }}
+                        onMouseEnter={(e) => e.currentTarget.style.background = "#495057"}
+                        onMouseLeave={(e) => e.currentTarget.style.background = "transparent"}
+                    >
+                        <BsClipboard2Check/>
+                        {!isCollapsed && "Estado de Resultados"}
+                    </Link>
+                </li>
+                <li className="nav-item mt-2">
+                    <Link to="/estado-cambios" className="nav-link text-white d-flex align-items-center gap-2"
+                        style={{ padding: "10px", borderRadius: "5px", transition: "background 0.3s" }}
+                        onMouseEnter={(e) => e.currentTarget.style.background = "#495057"}
+                        onMouseLeave={(e) => e.currentTarget.style.background = "transparent"}
+                    >
+                        <BsClipboard2PulseFill/>
+                        {!isCollapsed && "Estado de Cambios en Capital Contable"}
+                    </Link>
+                </li>
+                <li className="nav-item mt-2">
+                    <Link to="/estado-flujos-efectivo" className="nav-link text-white d-flex align-items-center gap-2"
+                        style={{ padding: "10px", borderRadius: "5px", transition: "background 0.3s" }}
+                        onMouseEnter={(e) => e.currentTarget.style.background = "#495057"}
+                        onMouseLeave={(e) => e.currentTarget.style.background = "transparent"}
+                    >
+                        <BsClipboard2DataFill/>
+                        {!isCollapsed && "Estado de Flujos de Efectivo (Indirecto)"}
+                    </Link>
+                </li>
+                <li className="nav-item mt-2">
+                    <Link to="/estado-flujos-efectivo-d" className="nav-link text-white d-flex align-items-center gap-2"
+                        style={{ padding: "10px", borderRadius: "5px", transition: "background 0.3s" }}
+                        onMouseEnter={(e) => e.currentTarget.style.background = "#495057"}
+                        onMouseLeave={(e) => e.currentTarget.style.background = "transparent"}
+                    >
+                        <BsClipboard2DataFill/>
+                        {!isCollapsed && "Estado de Flujos de Efectivo (Directo)"}
                     </Link>
                 </li>
                 

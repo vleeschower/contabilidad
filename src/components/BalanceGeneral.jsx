@@ -88,6 +88,12 @@ const BalanceGeneral = () => {
                 } else if (cuenta.clase === 'pasivo' || cuenta.clase === 'capital contable') {
                     // Pasivo y capital contable: haber aumenta, debe disminuye
                     saldos[cuenta_id] += (haber - debe);
+                } else if (cuenta.clase === 'ingresos') {
+                    // Ingresos: haber aumenta, debe disminuye
+                    saldos[cuenta_id] += (haber - debe);
+                } else if (cuenta.clase === 'costos' || cuenta.clase === 'gastos') {
+                    // Costos y gastos: debe aumenta, haber disminuye
+                    saldos[cuenta_id] += (debe - haber);
                 }
             }
         });
@@ -96,41 +102,99 @@ const BalanceGeneral = () => {
         const activoNoCirculante = {};
         const pasivo = {};
         const capital = {};
+        const ingresos = {};
+        const costos = {};
+        const gastosGenerales = {};
 
         Object.keys(saldos).forEach(cuenta_id => {
             const cuenta = cuentas.find(c => c.id === parseInt(cuenta_id));
             if (cuenta) {
                 if (cuenta.clase === 'activo' && cuenta.tipo === 'circulante') {
                     activoCirculante[cuenta.nombre] = saldos[cuenta_id];
-                } else if (cuenta.clase === 'activo' && cuenta.tipo === 'no circulante') {
-                    activoNoCirculante[cuenta.nombre] = saldos[cuenta_id];
+                } 
+                
+                else if (cuenta.clase === 'activo' && cuenta.tipo === 'no circulante' && 
+                    !cuenta.nombre.includes('Depreciación acumulada')) {
+              activoNoCirculante[cuenta.nombre] = saldos[cuenta_id];
                 } else if (cuenta.clase === 'pasivo') {
                     pasivo[cuenta.nombre] = saldos[cuenta_id];
                 } else if (cuenta.clase === 'capital contable') {
                     capital[cuenta.nombre] = saldos[cuenta_id];
+                } else if (cuenta.clase === 'ingresos') {
+                    ingresos[cuenta.nombre] = saldos[cuenta_id];
+                } else if (cuenta.clase === 'costos') {
+                    costos[cuenta.nombre] = saldos[cuenta_id];
+                } else if (cuenta.clase === 'gastos') {
+                    gastosGenerales[cuenta.nombre] = saldos[cuenta_id];
                 }
+            }
+        });
+
+        // Definir el orden deseado para las cuentas de activo no circulante
+        const ordenCuentas = [
+            'Terrenos',
+            'Edificios',
+            'Depreciación acumulada (edificios)',
+            'Mobiliario y equipo',
+            'Depreciación acumulada (mobiliario y equipo)',
+            'Equipo de computo',
+            'Depreciación acumulada (equipo de cómputo)'
+        ];
+
+        // Crear un objeto ordenado para activo no circulante
+        const activoNoCirculanteOrdenado = {};
+    
+        // Procesar las cuentas en el orden especificado
+        ordenCuentas.forEach(nombreCuenta => {
+            // Verificar si la cuenta existe en los movimientos del período
+            const cuenta = cuentas.find(c => c.nombre === nombreCuenta);
+            if (cuenta && saldos[cuenta.id] !== undefined) {
+                // Solo agregar si hay saldo (movimientos en el período)
+                if (Math.abs(saldos[cuenta.id]) > 0.01) { // Consideramos un pequeño margen para decimales
+                    activoNoCirculanteOrdenado[nombreCuenta] = saldos[cuenta.id];
+                }
+            } else if (activoNoCirculante[nombreCuenta] !== undefined) {
+                // Para cuentas que no son depreciaciones pero están en el orden
+                activoNoCirculanteOrdenado[nombreCuenta] = activoNoCirculante[nombreCuenta];
+            }
+        });
+
+        // Agregar cualquier otra cuenta de activo no circulante que no esté en el orden específico
+        Object.keys(activoNoCirculante).forEach(nombre => {
+            if (!ordenCuentas.includes(nombre) && !activoNoCirculanteOrdenado[nombre]) {
+                activoNoCirculanteOrdenado[nombre] = activoNoCirculante[nombre];
             }
         });
 
         // Calcular totales
         const totalActivoCirculante = Object.values(activoCirculante).reduce((sum, saldo) => sum + saldo, 0);
-        const totalActivoNoCirculante = Object.values(activoNoCirculante).reduce((sum, saldo) => sum + saldo, 0);
+        const totalActivoNoCirculante = Object.values(activoNoCirculanteOrdenado).reduce((sum, saldo) => sum + saldo, 0);
         const totalActivo = totalActivoCirculante + totalActivoNoCirculante;
         const totalPasivo = Object.values(pasivo).reduce((sum, saldo) => sum + saldo, 0);
         const totalCapital = Object.values(capital).reduce((sum, saldo) => sum + saldo, 0);
-        const totalPasivoMasCapital = totalPasivo + totalCapital;
+        
+        const totalIngresos = Object.values(ingresos).reduce((sum, saldo) => sum + saldo, 0);
+        const totalCostos = Object.values(costos).reduce((sum, saldo) => sum + saldo, 0);
+        const totalGastosGenerales = Object.values(gastosGenerales).reduce((sum, saldo) => sum + saldo, 0);
+        const utilidadBruta = totalIngresos - totalCostos;
+        const perdidaPeriodo= utilidadBruta-totalGastosGenerales;
+
+        const totalCapitalConPerdida = totalCapital + perdidaPeriodo;
+        const totalPasivoMasCapital = totalPasivo + totalCapitalConPerdida;
 
         return {
             activoCirculante,
-            activoNoCirculante,
+            activoNoCirculante: activoNoCirculanteOrdenado,
             pasivo,
             capital,
             totalActivoCirculante,
             totalActivoNoCirculante,
             totalActivo,
             totalPasivo,
-            totalCapital,
-            totalPasivoMasCapital
+            totalCapital: totalCapitalConPerdida,
+            totalPasivoMasCapital,
+            perdidaPeriodo,
+            
         };
     };
 
@@ -180,7 +244,7 @@ const BalanceGeneral = () => {
                             <h5 className="text-center">Balance General del {fechaInicial} al {fechaFinal}</h5>
                             <div className="row">
                                 <div className="col-md-6">
-                                    <h6>Activo Circulante</h6>
+                                    <h6>Activo circulante</h6>
                                     <table className="table table-bordered">
                                         <thead>
                                             <tr>
@@ -198,13 +262,13 @@ const BalanceGeneral = () => {
                                         </tbody>
                                         <tfoot>
                                             <tr>
-                                                <th>Total Activo Circulante</th>
+                                                <th>Total activo circulante</th>
                                                 <th>${balance.totalActivoCirculante.toFixed(2)}</th>
                                             </tr>
                                         </tfoot>
                                     </table>
 
-                                    <h6>Activo No Circulante</h6>
+                                    <h6>Activo no circulante</h6>
                                     <table className="table table-bordered">
                                         <thead>
                                             <tr>
@@ -222,22 +286,13 @@ const BalanceGeneral = () => {
                                         </tbody>
                                         <tfoot>
                                             <tr>
-                                                <th>Total Activo No Circulante</th>
+                                                <th>Total activo no circulante</th>
                                                 <th>${balance.totalActivoNoCirculante.toFixed(2)}</th>
                                             </tr>
                                         </tfoot>
                                     </table>
-
-                                    <h6>Total Activo</h6>
-                                    <table className="table table-bordered">
-                                        <tfoot>
-                                            <tr>
-                                                <th>Total Activo</th>
-                                                <th>${balance.totalActivo.toFixed(2)}</th>
-                                            </tr>
-                                        </tfoot>
-                                    </table>
                                 </div>
+
                                 <div className="col-md-6">
                                     <h6>Pasivo</h6>
                                     <table className="table table-bordered">
@@ -257,13 +312,13 @@ const BalanceGeneral = () => {
                                         </tbody>
                                         <tfoot>
                                             <tr>
-                                                <th>Total Pasivo</th>
+                                                <th>Total pasivo</th>
                                                 <th>${balance.totalPasivo.toFixed(2)}</th>
                                             </tr>
                                         </tfoot>
                                     </table>
 
-                                    <h6>Capital Contable</h6>
+                                    <h6>Capital contable</h6>
                                     <table className="table table-bordered">
                                         <thead>
                                             <tr>
@@ -278,26 +333,71 @@ const BalanceGeneral = () => {
                                                     <td>${saldo.toFixed(2)}</td>
                                                 </tr>
                                             ))}
+                                            <tr>
+                                            <td>{balance.perdidaPeriodo >= 0 ? 'Utilidad del periodo' : 'Pérdida del periodo'}</td>
+                                            <td>${(balance.perdidaPeriodo).toFixed(2)}</td>
+                                            </tr>
                                         </tbody>
                                         <tfoot>
                                             <tr>
-                                                <th>Total Capital</th>
+                                                <th>Total capital</th>
                                                 <th>${balance.totalCapital.toFixed(2)}</th>
-                                            </tr>
-                                        </tfoot>
-                                    </table>
-
-                                    <h6>Total Pasivo + Capital</h6>
-                                    <table className="table table-bordered">
-                                        <tfoot>
-                                            <tr>
-                                                <th>Total Pasivo + Capital</th>
-                                                <th>${balance.totalPasivoMasCapital.toFixed(2)}</th>
                                             </tr>
                                         </tfoot>
                                     </table>
                                 </div>
                             </div>
+
+                            <div className='row'>
+                                <div className='col-md-6'>
+                                    <h6>Total activo</h6>
+                                    <table className="table table-bordered">
+                                        <tfoot>
+                                            <tr>
+                                                <th>Total activo</th>
+                                                <th>${balance.totalActivo.toFixed(2)}</th>
+                                            </tr>
+                                        </tfoot>
+                                    </table> 
+                                </div>
+
+                                <div className='col-md-6'>
+                                    <h6>Total pasivo + Capital</h6>
+                                    <table className="table table-bordered">
+                                        <tfoot>
+                                            <tr>
+                                            <th>Total pasivo + Capital</th>
+                                            <th>${balance.totalPasivoMasCapital.toFixed(2)}</th>
+                                            </tr>
+                                        </tfoot>
+                                    </table> 
+                                </div>
+                            </div>       
+
+                            <table className="table table-bordered mt-2">
+                                <tbody>
+                                    <tr>
+                                        <td className="text-center">
+                                            <p><strong>Autorizado por:</strong></p>
+                                            <img
+                                            src="../../public/firma1.jpg"
+                                            alt="Firma de Nuria"
+                                            style={{ width: '180px', height: 'auto', marginBottom: '10px' }}
+                                            />
+                                            <p>Nuria Gonzalez Zuñiga</p>
+                                        </td>
+                                        <td className="text-center">
+                                            <p><strong>Elaborado por:</strong></p>
+                                            <img
+                                            src="../../public/firma2.jpg"
+                                            alt="Firma de Nuria"
+                                            style={{ width: '90px', height: 'auto', marginBottom: '10px' }}
+                                            />
+                                            <p>Citlalli Araceli Hernández Vleeschower</p>
+                                        </td>
+                                    </tr>
+                                </tbody>
+                            </table>                            
                         </div>
                     )}
                 </div>

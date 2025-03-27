@@ -8,6 +8,10 @@ import BalanceGeneralPage from './views/BalanceGeneral';
 import LibroDiarioPage from './views/LibroDiario';
 import LibroMayorPage from './views/LibroMayor';
 import BalanceComprobacionPage from './views/BalanceComprobacion';
+import EstadoResultadosPage from './views/EstadoResultados';
+import EstadoCambiosPage from './views/EstadoCambios';
+import EstadoFlujosEfectivosPage from './views/EstadoFlujosEfectivo';
+import EstadoFlujosEfectivosDPage from './views/EstadoFlujosEfectivoD';
 
 function App() {
   return (
@@ -23,6 +27,10 @@ function App() {
                       <Route path="/libro-diario" element={<LibroDiarioPage />} />
                       <Route path="/libro-mayor" element={<LibroMayorPage />} />
                       <Route path="/balance-comprobacion" element={<BalanceComprobacionPage />} />
+                      <Route path="/estado-resultados" element={<EstadoResultadosPage />} />
+                      <Route path="/estado-cambios" element={<EstadoCambiosPage />} />
+                      <Route path="/estado-flujos-efectivo" element={<EstadoFlujosEfectivosPage />} />
+                      <Route path="/estado-flujos-efectivo-d" element={<EstadoFlujosEfectivosDPage />} />
                   </Routes>
               </div>
           </div>

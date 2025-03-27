@@ -63,7 +63,6 @@ app.get('/api/movimientos', (req, res) => {
     if (fechaInicial && fechaFinal) {
         conditions.push(`DATE(fecha) BETWEEN '${fechaInicial}' AND '${fechaFinal}'`);
     }
-
     if (conditions.length > 0) {
         query += ' WHERE ' + conditions.join(' AND ');
     }
